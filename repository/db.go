@@ -62,5 +62,21 @@ func seedSampleData() {
 		UserID:  1,
 		Balance: 9000000000,
 	}
+	sampleAccount2 := model.Account{
+		Model: gorm.Model{
+			ID: 2,
+		},
+		UserID:  2,
+		Balance: 0,
+	}
+	sampleAccount3 := model.Account{
+		Model: gorm.Model{
+			ID: 3,
+		},
+		UserID:  3,
+		Balance: 0,
+	}
 	db.Create(&sampleAccount)
+	db.Create(&sampleAccount2)
+	db.Create(&sampleAccount3)
 }

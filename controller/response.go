@@ -18,6 +18,15 @@ func SuccessResonse(data interface{}) BaseResponse {
 	}
 }
 
+func GenericResponse(message, cause string) BaseResponse {
+	return BaseResponse{
+		Error: &ErrorResponse{
+			Message: message,
+			Cause:   cause,
+		},
+	}
+}
+
 func InvalidRequestResponse(cause string) BaseResponse {
 	return BaseResponse{
 		Error: &ErrorResponse{

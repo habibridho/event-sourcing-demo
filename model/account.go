@@ -4,7 +4,7 @@ import "gorm.io/gorm"
 
 type Account struct {
 	gorm.Model
-	UserID  uint64
+	UserID  uint
 	User    User
 	Balance uint64
 }

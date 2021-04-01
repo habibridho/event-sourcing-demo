@@ -3,9 +3,11 @@ package controller
 import (
 	"context"
 	"event-sourcing-demo/repository"
+	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
 	"golang.org/x/crypto/bcrypt"
+	"log"
 	"net/http"
 )
 
@@ -20,11 +22,15 @@ func Login(ctx echo.Context) error {
 		return ctx.JSON(http.StatusBadRequest, InvalidRequestResponse(err.Error()))
 	}
 
-	if !validCredentials(request.Email, request.Password) {
+	userID, err := getUserID(request.Email, request.Password)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, InternalErrorResponse())
+	}
+	if userID == 0 {
 		return ctx.JSON(http.StatusUnauthorized, InvalidCredentialsResponse())
 	}
 
-	signedToken, err := generateSignedToken(request)
+	signedToken, err := generateSignedToken(request, userID)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, InternalErrorResponse())
 	}
@@ -34,24 +40,26 @@ func Login(ctx echo.Context) error {
 	}))
 }
 
-func generateSignedToken(request LoginRequest) (string, error) {
+func generateSignedToken(request LoginRequest, userID uint) (string, error) {
 	token := jwt.New(jwt.SigningMethodHS256)
 	claims := token.Claims.(jwt.MapClaims)
 	claims["email"] = request.Email
+	claims["id"] = fmt.Sprintf("%d", userID)
 
 	signedToken, err := token.SignedString([]byte("secret"))
 	return signedToken, err
 }
 
-func validCredentials(email, password string) bool {
+func getUserID(email, password string) (uint, error) {
 	user, err := repository.FetchUserByEmail(context.Background(), email)
 	if err != nil {
-		return false
+		log.Printf("could not fetch user by email: %s", err.Error())
+		return 0, err
 	}
 
 	if err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
-		return false
+		return 0, nil
 	}
 
-	return true
+	return user.ID, nil
 }
