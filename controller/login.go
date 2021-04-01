@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
 	"net/http"
 )
@@ -16,5 +17,25 @@ func Login(ctx echo.Context) error {
 		return ctx.JSON(http.StatusBadRequest, InvalidRequestResponse(err.Error()))
 	}
 
-	return ctx.String(http.StatusOK, "not finished")
+	if !validCredentials(request.Email, request.Password) {
+		return ctx.JSON(http.StatusUnauthorized, InvalidCredentialsResponse())
+	}
+
+	token := jwt.New(jwt.SigningMethodHS256)
+	claims := token.Claims.(jwt.MapClaims)
+	claims["email"] = request.Email
+
+	signedToken, err := token.SignedString([]byte("secret"))
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, InternalErrorResponse())
+	}
+
+	return ctx.JSON(http.StatusOK, SuccessResonse(map[string]string{
+		"token": signedToken,
+	}))
+}
+
+func validCredentials(email, password string) bool {
+	// TODO: check to database
+	return email == "habib@email.com" && password == "password"
 }
