@@ -2,12 +2,15 @@ package main
 
 import (
 	"event-sourcing-demo/controller"
+	"event-sourcing-demo/repository"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	"net/http"
 )
 
 func main() {
+	repository.InitialiseDB()
+
 	server := echo.New()
 	server.Use(middleware.Logger())
 
