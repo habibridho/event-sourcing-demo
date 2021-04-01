@@ -1,8 +1,11 @@
 package controller
 
 import (
+	"context"
+	"event-sourcing-demo/repository"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
+	"golang.org/x/crypto/bcrypt"
 	"net/http"
 )
 
@@ -21,11 +24,7 @@ func Login(ctx echo.Context) error {
 		return ctx.JSON(http.StatusUnauthorized, InvalidCredentialsResponse())
 	}
 
-	token := jwt.New(jwt.SigningMethodHS256)
-	claims := token.Claims.(jwt.MapClaims)
-	claims["email"] = request.Email
-
-	signedToken, err := token.SignedString([]byte("secret"))
+	signedToken, err := generateSignedToken(request)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, InternalErrorResponse())
 	}
@@ -35,7 +34,24 @@ func Login(ctx echo.Context) error {
 	}))
 }
 
+func generateSignedToken(request LoginRequest) (string, error) {
+	token := jwt.New(jwt.SigningMethodHS256)
+	claims := token.Claims.(jwt.MapClaims)
+	claims["email"] = request.Email
+
+	signedToken, err := token.SignedString([]byte("secret"))
+	return signedToken, err
+}
+
 func validCredentials(email, password string) bool {
-	// TODO: check to database
-	return email == "habib@email.com" && password == "password"
+	user, err := repository.FetchUserByEmail(context.Background(), email)
+	if err != nil {
+		return false
+	}
+
+	if err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
+		return false
+	}
+
+	return true
 }
