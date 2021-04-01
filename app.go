@@ -16,5 +16,8 @@ func main() {
 	})
 	server.POST("/login", controller.Login)
 
+	paymentRoute := server.Group("/pay", middleware.JWT([]byte("secret")))
+	paymentRoute.POST("", controller.Pay)
+
 	server.Logger.Fatal(server.Start(":1212"))
 }
