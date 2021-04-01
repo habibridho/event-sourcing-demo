@@ -22,5 +22,45 @@ func InitialiseDB() {
 		&model.Account{},
 		&model.Transaction{})
 	log.Print("model migrated.")
+
+	log.Print("seeding db with sample data")
+	seedSampleData()
+
 	log.Print("db connection initialised.")
+}
+
+func seedSampleData() {
+	sampleUser1 := model.User{
+		Model: gorm.Model{
+			ID: 1,
+		},
+		Email: "habib@email.com",
+	}
+	sampleUser2 := model.User{
+		Model: gorm.Model{
+			ID: 2,
+		},
+		Email: "ani@email.com",
+	}
+	sampleUser3 := model.User{
+		Model: gorm.Model{
+			ID: 3,
+		},
+		Email: "budi@email.com",
+	}
+	sampleUser1.SetPassword("password")
+	sampleUser2.SetPassword("password")
+	sampleUser3.SetPassword("password")
+	db.Create(&sampleUser1)
+	db.Create(&sampleUser2)
+	db.Create(&sampleUser3)
+
+	sampleAccount := model.Account{
+		Model: gorm.Model{
+			ID: 1,
+		},
+		UserID:  1,
+		Balance: 9000000000,
+	}
+	db.Create(&sampleAccount)
 }
