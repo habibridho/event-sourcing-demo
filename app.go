@@ -4,6 +4,7 @@ import (
 	"event-sourcing-demo/controller"
 	"event-sourcing-demo/handler"
 	"event-sourcing-demo/repository"
+	"event-sourcing-demo/worker"
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
@@ -27,6 +28,7 @@ func main() {
 	defer producer.Close()
 	go startKafkaDeliveryReport(producer)
 
+	startWorker()
 	startHttpServer(amqpCh, producer)
 
 	// Wait for 5s for all message to be delivered
@@ -79,6 +81,13 @@ func startHttpServer(amqpCh *amqp.Channel, producer *kafka.Producer) {
 	paymentRoute.POST("/with-event", payWithEventController.Pay)
 
 	server.Logger.Fatal(server.Start(":1212"))
+}
+
+func startWorker() {
+	kafkaNotificationWorker := worker.NewKafkaConsumer("pay-events", "notification-worker", &handler.MockHandler{})
+	kafkaEmailWorker := worker.NewKafkaConsumer("pay-events", "email-worker", &handler.MockHandler{})
+	go kafkaNotificationWorker.Consume()
+	go kafkaEmailWorker.Consume()
 }
 
 func startKafkaDeliveryReport(p *kafka.Producer) {
