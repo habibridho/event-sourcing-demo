@@ -31,7 +31,7 @@ type PayController struct {
 func (p *PayController) Pay(ctx echo.Context) error {
 	var request PayRequest
 	if err := ctx.Bind(&request); err != nil {
-		return ctx.JSON(http.StatusBadRequest, InvalidCredentialsResponse())
+		return ctx.JSON(http.StatusBadRequest, InvalidRequestResponse(err.Error()))
 	}
 
 	senderID, err := util.GetUserIDFromEchoContext(ctx)
