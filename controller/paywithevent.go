@@ -18,11 +18,16 @@ type PayWithEventController struct {
 	Producer *kafka.Producer
 }
 
+type User struct {
+	ID    uint   `json:"id"`
+	Email string `json:"email"`
+}
+
 type PayEvent struct {
-	Sender          model.User `json:"sender"`
-	Receiver        model.User `json:"receiver"`
-	Amount          uint64     `json:"amount"`
-	TransactionTime time.Time  `json:"transaction_time"`
+	Sender          User      `json:"sender"`
+	Receiver        User      `json:"receiver"`
+	Amount          uint64    `json:"amount"`
+	TransactionTime time.Time `json:"transaction_time"`
 }
 
 var (
@@ -88,8 +93,8 @@ func (p *PayWithEventController) createPayEvent(ctx context.Context, transaction
 		return PayEvent{}, err
 	}
 	return PayEvent{
-		Sender:          sender,
-		Receiver:        receiver,
+		Sender:          User{sender.ID, sender.Email},
+		Receiver:        User{receiver.ID, receiver.Email},
 		Amount:          transaction.Amount,
 		TransactionTime: time.Now(),
 	}, nil

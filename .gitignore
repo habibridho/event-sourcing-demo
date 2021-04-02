@@ -1,1 +1,3 @@
 .dev
+.kafka_data
+.zookeeper_data
