@@ -3,6 +3,7 @@ module event-sourcing-demo
 go 1.15
 
 require (
+	github.com/confluentinc/confluent-kafka-go v1.6.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/jackc/pgproto3/v2 v2.0.7 // indirect
 	github.com/jackc/pgx/v4 v4.11.0 // indirect
