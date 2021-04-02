@@ -11,3 +11,9 @@ services:
     environment:
       - POSTGRES_DB=emoney
       - POSTGRES_PASSWORD=password
+  rabbitmq:
+    image: rabbitmq:3.8.9-management
+    ports:
+      - 5672:5672
+      - 15672:15672
+    restart: always
