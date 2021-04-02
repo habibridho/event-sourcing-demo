@@ -4,11 +4,10 @@ import (
 	"errors"
 	"event-sourcing-demo/model"
 	"event-sourcing-demo/repository"
-	"github.com/dgrijalva/jwt-go"
+	"event-sourcing-demo/util"
 	"github.com/labstack/echo"
 	"log"
 	"net/http"
-	"strconv"
 )
 
 type PayRequest struct {
@@ -35,7 +34,7 @@ func (p *PayController) Pay(ctx echo.Context) error {
 		return ctx.JSON(http.StatusBadRequest, InvalidCredentialsResponse())
 	}
 
-	senderID, err := getUserIDFromContext(ctx)
+	senderID, err := util.GetUserIDFromEchoContext(ctx)
 	if err != nil {
 		log.Printf("could not get user id from context: %s", err.Error())
 		return ctx.JSON(http.StatusInternalServerError, InternalErrorResponse())
@@ -89,27 +88,4 @@ func (p *PayController) sendEmail(senderID, receiverID uint) error {
 		return err
 	}
 	return nil
-}
-
-func getUserIDFromContext(ctx echo.Context) (uint, error) {
-	token, ok := ctx.Get("user").(*jwt.Token)
-	if !ok {
-		err := errors.New("could not extract token from context")
-		return 0, err
-	}
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		err := errors.New("could not extract claims from token")
-		return 0, err
-	}
-	senderIDStr, ok := claims["id"].(string)
-	if !ok {
-		err := errors.New("could not get user id from claims")
-		return 0, err
-	}
-	senderID, err := strconv.ParseUint(senderIDStr, 10, 64)
-	if err != nil {
-		return 0, err
-	}
-	return uint(senderID), nil
 }
