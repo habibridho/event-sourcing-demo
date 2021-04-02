@@ -16,7 +16,20 @@ type PayRequest struct {
 	Amount uint64 `json:"amount"`
 }
 
-func Pay(ctx echo.Context) error {
+type NotificationHandler interface {
+	SendNotification(userID uint, message string) error
+}
+
+type EmailHandler interface {
+	SendEmail(userID uint, message string) error
+}
+
+type PayController struct {
+	NotificationHandler
+	EmailHandler
+}
+
+func (p *PayController) Pay(ctx echo.Context) error {
 	var request PayRequest
 	if err := ctx.Bind(&request); err != nil {
 		return ctx.JSON(http.StatusBadRequest, InvalidCredentialsResponse())
@@ -43,10 +56,39 @@ func Pay(ctx echo.Context) error {
 		}
 	}
 
-	// TODO: send notification
-	// TODO: send email
+	// Send Notification to Users
+	if err := p.sendNotification(transaction.SenderID, transaction.ReceiverID); err != nil {
+		log.Printf("could not send notification: %s", err.Error())
+		return ctx.JSON(http.StatusInternalServerError, InternalErrorResponse())
+	}
+
+	// Send Email to Users
+	if err := p.sendEmail(transaction.SenderID, transaction.ReceiverID); err != nil {
+		log.Printf("could not send email: %s", err.Error())
+		return ctx.JSON(http.StatusInternalServerError, InternalErrorResponse())
+	}
 
 	return ctx.JSON(http.StatusOK, SuccessResonse(nil))
+}
+
+func (p *PayController) sendNotification(senderID, receiverID uint) error {
+	if err := p.SendNotification(senderID, "money sent!"); err != nil {
+		return err
+	}
+	if err := p.SendNotification(receiverID, "money received!"); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (p *PayController) sendEmail(senderID, receiverID uint) error {
+	if err := p.SendEmail(senderID, "money sent!"); err != nil {
+		return err
+	}
+	if err := p.SendEmail(receiverID, "money received!"); err != nil {
+		return err
+	}
+	return nil
 }
 
 func getUserIDFromContext(ctx echo.Context) (uint, error) {

@@ -2,6 +2,7 @@ package main
 
 import (
 	"event-sourcing-demo/controller"
+	"event-sourcing-demo/handler"
 	"event-sourcing-demo/repository"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
@@ -19,8 +20,10 @@ func main() {
 	})
 	server.POST("/login", controller.Login)
 
+	mockHandler := handler.MockHandler{}
+	payController := controller.PayController{NotificationHandler: &mockHandler, EmailHandler: &mockHandler}
 	paymentRoute := server.Group("/pay", middleware.JWT([]byte("secret")))
-	paymentRoute.POST("", controller.Pay)
+	paymentRoute.POST("", payController.Pay)
 
 	server.Logger.Fatal(server.Start(":1212"))
 }
