@@ -50,7 +50,7 @@ func (p *PayWithQueueController) Pay(ctx echo.Context) error {
 		ReceiverID: request.To,
 		Amount:     request.Amount,
 	}
-	if err := repository.ExecuteTransaction(ctx.Request().Context(), transaction); err != nil {
+	if _, err := repository.ExecuteTransaction(ctx.Request().Context(), transaction); err != nil {
 		if errors.Is(err, repository.InsufficientBalance{}) {
 			log.Print("insufficient balance")
 			return ctx.JSON(http.StatusUnprocessableEntity, GenericResponse("insufficient balance", err.Error()))

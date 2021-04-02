@@ -27,6 +27,7 @@ type PayEvent struct {
 	Sender          User      `json:"sender"`
 	Receiver        User      `json:"receiver"`
 	Amount          uint64    `json:"amount"`
+	TransactionID   uint      `json:"transaction_id"`
 	TransactionTime time.Time `json:"transaction_time"`
 }
 
@@ -51,7 +52,8 @@ func (p *PayWithEventController) Pay(ctx echo.Context) error {
 		ReceiverID: request.To,
 		Amount:     request.Amount,
 	}
-	if err := repository.ExecuteTransaction(ctx.Request().Context(), transaction); err != nil {
+	transactionID, err := repository.ExecuteTransaction(ctx.Request().Context(), transaction)
+	if err != nil {
 		if errors.Is(err, repository.InsufficientBalance{}) {
 			log.Print("insufficient balance")
 			return ctx.JSON(http.StatusUnprocessableEntity, GenericResponse("insufficient balance", err.Error()))
@@ -60,6 +62,7 @@ func (p *PayWithEventController) Pay(ctx echo.Context) error {
 			return ctx.JSON(http.StatusInternalServerError, InternalErrorResponse())
 		}
 	}
+	transaction.ID = transactionID
 
 	payEvent, err := p.createPayEvent(ctx.Request().Context(), transaction)
 	if err != nil {
@@ -96,6 +99,7 @@ func (p *PayWithEventController) createPayEvent(ctx context.Context, transaction
 		Sender:          User{sender.ID, sender.Email},
 		Receiver:        User{receiver.ID, receiver.Email},
 		Amount:          transaction.Amount,
+		TransactionID:   transaction.ID,
 		TransactionTime: time.Now(),
 	}, nil
 }

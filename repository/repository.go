@@ -29,7 +29,7 @@ func FetchUserByEmail(ctx context.Context, email string) (model.User, error) {
 	return user, nil
 }
 
-func ExecuteTransaction(ctx context.Context, transaction model.Transaction) (err error) {
+func ExecuteTransaction(ctx context.Context, transaction model.Transaction) (transactionID uint, err error) {
 	tx := db.WithContext(ctx).Begin()
 	defer func() {
 		if err != nil {
@@ -73,5 +73,7 @@ func ExecuteTransaction(ctx context.Context, transaction model.Transaction) (err
 		log.Printf("could not update receiver account: %s", err.Error())
 		return
 	}
+
+	transactionID = transaction.ID
 	return
 }
