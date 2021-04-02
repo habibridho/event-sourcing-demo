@@ -5,10 +5,6 @@ import (
 	"log"
 )
 
-type MessageHandler interface {
-	Handle(msg []byte) error
-}
-
 type KafkaWorker struct {
 	consumer *kafka.Consumer
 	handler  MessageHandler

@@ -20,27 +20,20 @@ func main() {
 	// Connecting to rabbitmq
 	conn := connectToRabbitMQ()
 	defer conn.Close()
-	amqpCh := createRabbitMQChannel(conn)
-	defer amqpCh.Close()
 
 	// Connecting to kafka
 	producer := createKafkaProducer()
 	defer producer.Close()
 	go startKafkaDeliveryReport(producer)
 
-	startWorker()
-	startHttpServer(amqpCh, producer)
+	startRabbitMqWorker(conn)
+	startKafkaWorker()
+
+	// Start http server, blocking
+	startHttpServer(conn, producer)
 
 	// Wait for 5s for all message to be delivered
 	producer.Flush(5000)
-}
-
-func createRabbitMQChannel(conn *amqp.Connection) *amqp.Channel {
-	amqpCh, err := conn.Channel()
-	if err != nil {
-		log.Fatalf("could not rabbitmq channel: %s", err.Error())
-	}
-	return amqpCh
 }
 
 func connectToRabbitMQ() *amqp.Connection {
@@ -59,7 +52,7 @@ func createKafkaProducer() *kafka.Producer {
 	return producer
 }
 
-func startHttpServer(amqpCh *amqp.Channel, producer *kafka.Producer) {
+func startHttpServer(conn *amqp.Connection, producer *kafka.Producer) {
 	server := echo.New()
 	server.Use(middleware.Logger())
 
@@ -70,7 +63,7 @@ func startHttpServer(amqpCh *amqp.Channel, producer *kafka.Producer) {
 
 	mockHandler := handler.MockHandler{}
 	payController := controller.PayController{NotificationHandler: &mockHandler, EmailHandler: &mockHandler}
-	payWithQueueController, err := controller.NewPayWithQueueController(amqpCh)
+	payWithQueueController, err := controller.NewPayWithQueueController(conn)
 	if err != nil {
 		log.Fatalf("could not create pay with queue controller: %s", err.Error())
 	}
@@ -83,7 +76,7 @@ func startHttpServer(amqpCh *amqp.Channel, producer *kafka.Producer) {
 	server.Logger.Fatal(server.Start(":1212"))
 }
 
-func startWorker() {
+func startKafkaWorker() {
 	kafkaNotificationWorker := worker.NewKafkaConsumer("pay-events", "notification-worker", &handler.MockHandler{})
 	kafkaEmailWorker := worker.NewKafkaConsumer("pay-events", "email-worker", &handler.MockHandler{})
 	go kafkaNotificationWorker.Consume()
@@ -101,4 +94,11 @@ func startKafkaDeliveryReport(p *kafka.Producer) {
 			}
 		}
 	}
+}
+
+func startRabbitMqWorker(conn *amqp.Connection) {
+	rabbitMqNotificationWorker := worker.NewRabbitMqWorker(conn, controller.PushNotificiationExchange, &handler.MockHandler{})
+	rabbitMqEmailWorker := worker.NewRabbitMqWorker(conn, controller.EmailExchange, &handler.MockHandler{})
+	go rabbitMqNotificationWorker.Consume()
+	go rabbitMqEmailWorker.Consume()
 }

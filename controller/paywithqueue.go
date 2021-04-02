@@ -21,7 +21,11 @@ var (
 	EmailExchange             = "EMAIL_EXCHANGE"
 )
 
-func NewPayWithQueueController(amqpChannel *amqp.Channel) (*PayWithQueueController, error) {
+func NewPayWithQueueController(conn *amqp.Connection) (*PayWithQueueController, error) {
+	amqpChannel, err := conn.Channel()
+	if err != nil {
+		log.Fatalf("could not rabbitmq channel: %s", err.Error())
+	}
 	if err := amqpChannel.ExchangeDeclare(PushNotificiationExchange, "fanout", true, false, false, false, nil); err != nil {
 		return nil, err
 	}
