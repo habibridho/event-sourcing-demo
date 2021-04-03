@@ -9,6 +9,10 @@ import (
 	"log"
 )
 
+var (
+	TestEmail = "neriroge@getnada.com"
+)
+
 type KafkaEmailHandler struct{}
 
 func (k *KafkaEmailHandler) Handle(msg []byte) error {
@@ -34,9 +38,32 @@ func (k *KafkaEmailHandler) Handle(msg []byte) error {
 	return nil
 }
 
+type RabbitMqEmailHandler struct{}
+
+func (r *RabbitMqEmailHandler) Handle(msg []byte) error {
+	var data map[string]interface{}
+	if err := json.Unmarshal(msg, &data); err != nil {
+		log.Printf("could not unmarshal message: %s", err.Error())
+		return err
+	}
+
+	mailData := map[string]interface{}{
+		"sender":   fmt.Sprintf("%s", data["sender_name"]),
+		"amount":   fmt.Sprintf("%v", data["amount"]),
+		"receiver": fmt.Sprintf("%s", data["receiver_name"]),
+	}
+	if err := SendEmail(fmt.Sprintf("%s", data["email"]), fmt.Sprintf("%s", data["template"]), mailData); err != nil {
+		log.Printf("could not send email: %s", err.Error())
+		return err
+	}
+	return nil
+}
+
 func SendEmail(destination, template string, data map[string]interface{}) error {
 	if destination == "habib@email.com" {
-		destination = "neriroge@getnada.com"
+		destination = TestEmail
+	} else {
+		return nil
 	}
 
 	raw, err := json.Marshal(data)

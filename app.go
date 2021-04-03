@@ -98,7 +98,7 @@ func startKafkaDeliveryReport(p *kafka.Producer) {
 
 func startRabbitMqWorker(conn *amqp.Connection) {
 	rabbitMqNotificationWorker := worker.NewRabbitMqWorker(conn, controller.PushNotificiationExchange, &handler.MockHandler{})
-	rabbitMqEmailWorker := worker.NewRabbitMqWorker(conn, controller.EmailExchange, &handler.MockHandler{})
+	rabbitMqEmailWorker := worker.NewRabbitMqWorker(conn, controller.EmailExchange, &handler.RabbitMqEmailHandler{})
 	go rabbitMqNotificationWorker.Consume()
 	go rabbitMqEmailWorker.Consume()
 }

@@ -47,6 +47,7 @@ func (r *RabbitMqWorker) Consume() {
 	for msg := range messages {
 		if err := r.handler.Handle(msg.Body); err != nil {
 			// TODO: move to dlq
+			log.Printf("could not handle message: %s", err.Error())
 		}
 	}
 }
