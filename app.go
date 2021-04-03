@@ -78,7 +78,7 @@ func startHttpServer(conn *amqp.Connection, producer *kafka.Producer) {
 
 func startKafkaWorker() {
 	kafkaNotificationWorker := worker.NewKafkaConsumer("pay-events", "notification-worker", &handler.MockHandler{})
-	kafkaEmailWorker := worker.NewKafkaConsumer("pay-events", "email-worker", &handler.MockHandler{})
+	kafkaEmailWorker := worker.NewKafkaConsumer("pay-events", "email-worker", &handler.KafkaEmailHandler{})
 	go kafkaNotificationWorker.Consume()
 	go kafkaEmailWorker.Consume()
 }
