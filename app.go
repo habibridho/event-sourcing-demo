@@ -62,7 +62,7 @@ func startHttpServer(conn *amqp.Connection, producer *kafka.Producer) {
 	server.POST("/login", controller.Login)
 
 	mockHandler := handler.MockHandler{}
-	payController := controller.PayController{NotificationHandler: &mockHandler, EmailHandler: &mockHandler}
+	payController := controller.PayController{NotificationHandler: &mockHandler, EmailHandler: &handler.SynchronousEmailHandler{}}
 	payWithQueueController, err := controller.NewPayWithQueueController(conn)
 	if err != nil {
 		log.Fatalf("could not create pay with queue controller: %s", err.Error())

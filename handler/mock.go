@@ -13,7 +13,7 @@ func (m *MockHandler) SendNotification(userID uint, message string) error {
 	return nil
 }
 
-func (m *MockHandler) SendEmail(userID uint, message string) error {
+func (m *MockHandler) SendEmail(to, template string, data map[string]interface{}) error {
 	time.Sleep(150 * time.Millisecond)
 	return nil
 }

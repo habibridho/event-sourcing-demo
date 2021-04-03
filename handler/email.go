@@ -59,6 +59,21 @@ func (r *RabbitMqEmailHandler) Handle(msg []byte) error {
 	return nil
 }
 
+type SynchronousEmailHandler struct{}
+
+func (s *SynchronousEmailHandler) SendEmail(to, template string, data map[string]interface{}) error {
+	mailData := map[string]interface{}{
+		"sender":   fmt.Sprintf("%s", data["sender_name"]),
+		"amount":   fmt.Sprintf("%v", data["amount"]),
+		"receiver": fmt.Sprintf("%s", data["receiver_name"]),
+	}
+	if err := SendEmail(to, template, mailData); err != nil {
+		log.Printf("could not send email: %s", err.Error())
+		return err
+	}
+	return nil
+}
+
 func SendEmail(destination, template string, data map[string]interface{}) error {
 	if destination == "habib@email.com" {
 		destination = TestEmail
