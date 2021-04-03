@@ -89,11 +89,11 @@ func (p *PayWithQueueController) Pay(ctx echo.Context) error {
 		log.Print("users data not found")
 		return ctx.JSON(http.StatusInternalServerError, InternalErrorResponse())
 	}
-	if err := p.PublishEmailQueue(sender.Email, "Money sent!"); err != nil {
+	if err := p.PublishEmailQueue(sender.Email, "sender-email", sender.Name, transaction.Amount); err != nil {
 		log.Printf("could publish email to sender: %s", err.Error())
 		return ctx.JSON(http.StatusInternalServerError, InternalErrorResponse())
 	}
-	if err := p.PublishEmailQueue(receiver.Email, "Money received!"); err != nil {
+	if err := p.PublishEmailQueue(receiver.Email, "receiver-email", receiver.Name, transaction.Amount); err != nil {
 		log.Printf("could publish email to receiver: %s", err.Error())
 		return ctx.JSON(http.StatusInternalServerError, InternalErrorResponse())
 	}
@@ -118,10 +118,12 @@ func (p *PayWithQueueController) PublishNotificationQueue(userID uint, message s
 	return nil
 }
 
-func (p *PayWithQueueController) PublishEmailQueue(email, message string) error {
+func (p *PayWithQueueController) PublishEmailQueue(email, template, name string, amount uint64) error {
 	emailPayload, err := json.Marshal(map[string]interface{}{
-		"email":   email,
-		"message": message,
+		"email":    email,
+		"template": template,
+		"name":     name,
+		"amount":   amount,
 	})
 	if err != nil {
 		return err

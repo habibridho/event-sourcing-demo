@@ -34,18 +34,21 @@ func seedSampleData() {
 		Model: gorm.Model{
 			ID: 1,
 		},
+		Name:  "Habib",
 		Email: "habib@email.com",
 	}
 	sampleUser2 := model.User{
 		Model: gorm.Model{
 			ID: 2,
 		},
+		Name:  "Ani",
 		Email: "ani@email.com",
 	}
 	sampleUser3 := model.User{
 		Model: gorm.Model{
 			ID: 3,
 		},
+		Name:  "Budi",
 		Email: "budi@email.com",
 	}
 	sampleUser1.SetPassword("password")

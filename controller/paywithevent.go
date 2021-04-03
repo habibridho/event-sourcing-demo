@@ -20,6 +20,7 @@ type PayWithEventController struct {
 
 type User struct {
 	ID    uint   `json:"id"`
+	Name  string `json:"name"`
 	Email string `json:"email"`
 }
 
@@ -96,8 +97,8 @@ func (p *PayWithEventController) createPayEvent(ctx context.Context, transaction
 		return PayEvent{}, err
 	}
 	return PayEvent{
-		Sender:          User{sender.ID, sender.Email},
-		Receiver:        User{receiver.ID, receiver.Email},
+		Sender:          User{sender.ID, sender.Name, sender.Email},
+		Receiver:        User{receiver.ID, receiver.Name, receiver.Email},
 		Amount:          transaction.Amount,
 		TransactionID:   transaction.ID,
 		TransactionTime: time.Now(),
