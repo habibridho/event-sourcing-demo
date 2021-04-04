@@ -77,3 +77,13 @@ func ExecuteTransaction(ctx context.Context, transaction model.Transaction) (tra
 	transactionID = transaction.ID
 	return
 }
+
+func FetchAccountByUserID(ctx context.Context, userID uint) (model.Account, error) {
+	var account model.Account
+	if err := db.WithContext(ctx).First(&account, "user_id = ?", userID).Error; err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return account, err
+		}
+	}
+	return account, nil
+}

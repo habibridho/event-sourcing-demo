@@ -61,6 +61,8 @@ func startHttpServer(conn *amqp.Connection, producer *kafka.Producer) {
 	})
 	server.POST("/login", controller.Login)
 
+	server.GET("/balance", controller.GetBalance, middleware.JWT([]byte("secret")))
+
 	mockHandler := handler.MockHandler{}
 	payController := controller.PayController{NotificationHandler: &mockHandler, EmailHandler: &handler.SynchronousEmailHandler{}}
 	payWithQueueController, err := controller.NewPayWithQueueController(conn)

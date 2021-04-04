@@ -34,7 +34,6 @@ func (p *PayController) Pay(ctx echo.Context) error {
 	if err := ctx.Bind(&request); err != nil {
 		return ctx.JSON(http.StatusBadRequest, InvalidRequestResponse(err.Error()))
 	}
-
 	senderID, err := util.GetUserIDFromEchoContext(ctx)
 	if err != nil {
 		log.Printf("could not get user id from context: %s", err.Error())
